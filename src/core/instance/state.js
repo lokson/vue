@@ -260,8 +260,12 @@ function initWatch (vm: Component, watch: Object) {
   }
 }
 
-function createWatcher (vm: Component, key: string, handler: any) {
-  let options
+function createWatcher (
+  vm: Component,
+  keyOrFn: string | Function,
+  handler: any,
+  options?: Object
+) {
   if (isPlainObject(handler)) {
     options = handler
     handler = handler.handler
@@ -269,7 +273,7 @@ function createWatcher (vm: Component, key: string, handler: any) {
   if (typeof handler === 'string') {
     handler = vm[handler]
   }
-  vm.$watch(key, handler, options)
+  return vm.$watch(keyOrFn, handler, options)
 }
 
 export function stateMixin (Vue: Class<Component>) {
@@ -300,10 +304,13 @@ export function stateMixin (Vue: Class<Component>) {
 
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
-    cb: Function,
+    cb: any,
     options?: Object
   ): Function {
     const vm: Component = this
+    if (isPlainObject(cb)) {
+      return createWatcher(vm, expOrFn, cb, options)
+    }
     options = options || {}
     options.user = true
     const watcher = new Watcher(vm, expOrFn, cb, options)
